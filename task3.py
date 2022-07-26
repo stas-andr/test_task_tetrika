@@ -2,34 +2,34 @@ import itertools
 
 
 def prepare_data(intervals):
-    """Записваем исходные данные по времени в отсортированный массив кортежей (time, flag)
-    time - время окончания (flag == 1) или начала (flag == -1) интервала"""
+    """Записваем исходные данные по времени в отсортированный массив кортежей (time, flag, key)
+    time - время окончания (flag == 1) или начала (flag == -1) интервала, key - ключ пользователя"""
     prepared_data = []
     for key, interval in intervals.items():
         prepared_data += list (zip (interval, itertools.cycle ((-1, 1)), [key] * len(interval)))
     prepared_data =  sorted(prepared_data)
-    for elem in prepared_data:
-        print (elem, sep='\n')
     return prepared_data
 
 
 def appearance(intervals):
     prepared_data = prepare_data(intervals)
-    prev_flag, prev_time, time_start, time_end, sum_time = 0, 0, 0, 0, 0
+    time_start, time_end, sum_time = 0, 0, 0
     lesson_started = False
+    dict_users = {'lesson': 0, 'pupil': 0, 'tutor': 0}
     for (time, flag, user) in prepared_data:
-        flag = prev_flag + flag
-        if flag == -3:
-            time_start = time
-            lesson_started = True
+        if flag == -1:
+            dict_users[user] += 1
+        elif user in dict_users.keys():
+            dict_users[user] -= 1
+        if dict_users['lesson'] >= 1 and dict_users['pupil'] >= 1 and dict_users['tutor']:
+            if not lesson_started:
+                time_start = time
+                lesson_started = True
         elif lesson_started:
             time_stop = time
             sum_time += (time_stop - time_start)
             lesson_started = False
-        prev_flag = flag
     return sum_time
-
-
 
 
 tests = [
@@ -52,8 +52,5 @@ tests = [
 
 if __name__ == '__main__':
    for i, test in enumerate(tests):
-       if i == 1:
-           i = 1
        test_answer = appearance(test['data'])
-       print("\n")
        assert test_answer == test['answer'], f'Error on test case {i}, got {test_answer}, expected {test["answer"]}'
