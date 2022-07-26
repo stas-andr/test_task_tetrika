@@ -5,14 +5,32 @@ def prepare_data(intervals):
     """Записваем исходные данные по времени в отсортированный массив кортежей (time, flag)
     time - время окончания (flag == 1) или начала (flag == -1) интервала"""
     prepared_data = []
-    for interval in intervals.values ():
-        prepared_data += list (zip (interval, itertools.cycle ((-1, 1))))
-    return sorted(prepared_data)
+    for key, interval in intervals.items():
+        prepared_data += list (zip (interval, itertools.cycle ((-1, 1)), [key] * len(interval)))
+    prepared_data =  sorted(prepared_data)
+    for elem in prepared_data:
+        print (elem, sep='\n')
+    return prepared_data
 
 
 def appearance(intervals):
     prepared_data = prepare_data(intervals)
-    for time_stamp in prepared_data:
+    prev_flag, prev_time, time_start, time_end, sum_time = 0, 0, 0, 0, 0
+    lesson_started = False
+    for (time, flag, user) in prepared_data:
+        flag = prev_flag + flag
+        if flag == -3:
+            time_start = time
+            lesson_started = True
+        elif lesson_started:
+            time_stop = time
+            sum_time += (time_stop - time_start)
+            lesson_started = False
+        prev_flag = flag
+    return sum_time
+
+
+
 
 tests = [
     {'data': {'lesson': [1594663200, 1594666800],
@@ -33,8 +51,9 @@ tests = [
 ]
 
 if __name__ == '__main__':
-    print(tests[0]['data'])
-    appearance(tests[0]['data'])
-   # for i, test in enumerate(tests):
-   #     test_answer = appearance(test['data'])
-   #     assert test_answer == test['answer'], f'Error on test case {i}, got {test_answer}, expected {test["answer"]}'
+   for i, test in enumerate(tests):
+       if i == 1:
+           i = 1
+       test_answer = appearance(test['data'])
+       print("\n")
+       assert test_answer == test['answer'], f'Error on test case {i}, got {test_answer}, expected {test["answer"]}'
