@@ -5,23 +5,35 @@ def prepare_data(intervals):
     """Записваем исходные данные по времени в отсортированный массив кортежей (time, flag, key)
     time - время окончания (flag == 1) или начала (flag == -1) интервала, key - ключ пользователя"""
     prepared_data = []
+    user_keys = []
     for key, interval in intervals.items():
         prepared_data += list (zip (interval, itertools.cycle ((-1, 1)), [key] * len(interval)))
-    prepared_data =  sorted(prepared_data)
-    return prepared_data
+        user_keys.append(key)
+    prepared_data = sorted(prepared_data)
+    return prepared_data, tuple(user_keys)
+
+
+def check_users(dict_users):
+    """Возвращает True, если все пользователи в словаре (все пользователи на уроке)"""
+    for user_count in dict_users.values():
+        if user_count < 1:
+            return False
+    return True
 
 
 def appearance(intervals):
-    prepared_data = prepare_data(intervals)
+    prepared_data, user_keys = prepare_data(intervals)
     time_start, time_end, sum_time = 0, 0, 0
     lesson_started = False
-    dict_users = {'lesson': 0, 'pupil': 0, 'tutor': 0}
+    dict_users = {}
+    for user in user_keys:
+        dict_users[user] = 0
     for (time, flag, user) in prepared_data:
         if flag == -1:
             dict_users[user] += 1
         elif user in dict_users.keys():
             dict_users[user] -= 1
-        if dict_users['lesson'] >= 1 and dict_users['pupil'] >= 1 and dict_users['tutor']:
+        if check_users(dict_users):
             if not lesson_started:
                 time_start = time
                 lesson_started = True
